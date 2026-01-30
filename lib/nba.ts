@@ -38,8 +38,12 @@ async function nbaFetch(
   url: string,
   init?: RequestInit & { next?: { revalidate?: number } },
 ): Promise<Response> {
-  const proxy = process.env.NBA_STATS_PROXY_URL?.trim();
+  let proxy = process.env.NBA_STATS_PROXY_URL?.trim();
   if (proxy) {
+    // Ensure proxy URL has a scheme (fetch requires a full URL)
+    if (!/^https?:\/\//i.test(proxy)) {
+      proxy = `https://${proxy}`;
+    }
     const proxyBase = proxy.replace(/\/$/, "");
     const proxyUrl = `${proxyBase}?url=${encodeURIComponent(url)}`;
     console.log(`[NBA] Using proxy: ${proxyBase} (request to stats.nba.com)`);
