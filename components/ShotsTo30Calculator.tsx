@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type Player = {
   id: number;
@@ -18,6 +18,7 @@ type CalculationResult = {
 export function ShotsTo30Calculator() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Player[]>([]);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [searchMeta, setSearchMeta] = useState<{
     current_page: number;
     next_page: number | null;
@@ -146,7 +147,8 @@ export function ShotsTo30Calculator() {
   const handlePlayerSelect = (player: Player) => {
     setSelectedPlayer(player);
     setSearchQuery(`${player.first_name} ${player.last_name}`);
-    setSearchResults([]);
+    setSearchResults([]); // close dropdown
+    searchInputRef.current?.blur();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -173,9 +175,8 @@ export function ShotsTo30Calculator() {
               .then((data) => {
                 console.log("Enter key search response:", data);
                 if (data.data && data.data.length > 0) {
-                  setSearchResults(data.data);
                   setSearchMeta(data.meta);
-                  handlePlayerSelect(data.data[0]);
+                  handlePlayerSelect(data.data[0]); // select first and close dropdown (no setSearchResults so dropdown doesn't flash)
                 } else {
                   setError("No players found. Try a different search.");
                 }
@@ -208,6 +209,7 @@ export function ShotsTo30Calculator() {
         <div className="relative mb-6">
           <div className="relative">
             <input
+              ref={searchInputRef}
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
