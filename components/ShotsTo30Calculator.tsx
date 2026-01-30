@@ -38,6 +38,17 @@ export function ShotsTo30Calculator() {
       return;
     }
 
+    // When a player is selected and the query still matches their name, keep dropdown closed until they type something new
+    if (selectedPlayer) {
+      const selectedName = `${selectedPlayer.first_name} ${selectedPlayer.last_name}`.trim();
+      if (searchQuery.trim() === selectedName) {
+        setSearchResults([]);
+        setSearchMeta(null);
+        setSearchLoading(false);
+        return;
+      }
+    }
+
     // Only search if query is at least 3 characters to reduce API calls and improve results
     if (searchQuery.trim().length < 3) {
       setSearchResults([]);
@@ -73,7 +84,7 @@ export function ShotsTo30Calculator() {
     }, 800); // Increased debounce to 800ms to reduce API calls
 
     return () => clearTimeout(timeoutId);
-  }, [searchQuery]);
+  }, [searchQuery, selectedPlayer]);
 
   const loadMorePlayers = async () => {
     if (!searchMeta?.next_page || !searchQuery.trim()) return;
@@ -223,7 +234,8 @@ export function ShotsTo30Calculator() {
               </div>
             )}
           </div>
-          {searchResults.length > 0 && (
+          {searchResults.length > 0 &&
+            (!selectedPlayer || searchQuery.trim() !== `${selectedPlayer.first_name} ${selectedPlayer.last_name}`.trim()) && (
             <div className="absolute z-50 mt-1 max-h-80 w-full overflow-y-auto rounded-xl border-2 border-blue-200 bg-white shadow-xl">
               {searchResults.map((player) => (
                 <button
@@ -244,11 +256,14 @@ export function ShotsTo30Calculator() {
               )}
             </div>
           )}
-          {searchQuery.trim() && !searchLoading && searchResults.length === 0 && (
-            <div className="absolute z-50 mt-1 w-full rounded-xl border border-slate-200 bg-white p-4 text-center text-sm text-slate-500 shadow-lg">
-              No players found. Try a different search.
-            </div>
-          )}
+          {searchQuery.trim() &&
+            !searchLoading &&
+            searchResults.length === 0 &&
+            !(selectedPlayer && searchQuery.trim() === `${selectedPlayer.first_name} ${selectedPlayer.last_name}`.trim()) && (
+              <div className="absolute z-50 mt-1 w-full rounded-xl border border-slate-200 bg-white p-4 text-center text-sm text-slate-500 shadow-lg">
+                No players found. Try a different search.
+              </div>
+            )}
         </div>
 
         {/* Result Card */}
