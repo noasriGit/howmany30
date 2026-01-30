@@ -16,18 +16,22 @@ export async function GET(request: Request) {
 
   try {
     const result = await searchPlayers(query);
-    console.log(`Search for "${query}": Found ${result.data.length} players`);
-    // Return in the same format as before for compatibility
-    return NextResponse.json({
-      data: result.data,
-      meta: {
-        total_pages: 1,
-        current_page: 1,
-        next_page: null,
-        per_page: 25,
-        total_count: result.data.length,
+    console.log(`Search for "${query}": Found ${result.data.length} players${result.error ? `; error: ${result.error}` : ""}`);
+    const status = result.error ? 503 : 200;
+    return NextResponse.json(
+      {
+        data: result.data,
+        meta: {
+          total_pages: 1,
+          current_page: 1,
+          next_page: null,
+          per_page: 25,
+          total_count: result.data.length,
+        },
+        ...(result.error && { error: result.error }),
       },
-    });
+      { status },
+    );
   } catch (error) {
     console.error("Search error:", error);
     return NextResponse.json({

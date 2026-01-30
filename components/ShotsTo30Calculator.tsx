@@ -51,20 +51,16 @@ export function ShotsTo30Calculator() {
         const response = await fetch(
           `/api/players/search?q=${encodeURIComponent(searchQuery)}&per_page=25`,
         );
-        if (response.ok) {
-          const data = await response.json();
-          console.log("Search response:", data);
-          const players = data.data || [];
-          console.log(`Setting ${players.length} search results`);
-          setSearchResults(players);
-          setSearchMeta(data.meta || null);
+        const data = await response.json().catch(() => ({ data: [] }));
+        console.log("Search response:", data);
+        const players = data.data || [];
+        setSearchResults(players);
+        setSearchMeta(data.meta || null);
+        if (!response.ok || data.error) {
+          const msg = data.error || (response.status === 429 ? "Rate limit reached. Please wait a moment." : "Search failed. Try again later.");
+          setError(msg);
         } else {
-          console.error("Search API error:", response.status, response.statusText);
-          if (response.status === 429) {
-            setError("Rate limit reached. Please wait a moment.");
-            setSearchResults([]);
-            setSearchMeta(null);
-          }
+          setError(null);
         }
       } catch (err) {
         console.error("Error searching players:", err);

@@ -42,11 +42,13 @@ async function nbaFetch(
   if (proxy) {
     const proxyBase = proxy.replace(/\/$/, "");
     const proxyUrl = `${proxyBase}?url=${encodeURIComponent(url)}`;
+    console.log(`[NBA] Using proxy: ${proxyBase} (request to stats.nba.com)`);
     return fetch(proxyUrl, {
       ...init,
       headers: { Accept: "application/json", ...init?.headers },
     });
   }
+  console.log("[NBA] Direct request (no proxy)");
   return fetch(url, {
     ...init,
     headers: { ...NBA_HEADERS, ...init?.headers },
@@ -58,7 +60,7 @@ async function nbaFetch(
  */
 export async function searchPlayers(
   query: string,
-): Promise<{ data: Player[] }> {
+): Promise<{ data: Player[]; error?: string }> {
   if (!query.trim()) {
     return { data: [] };
   }
@@ -81,7 +83,13 @@ export async function searchPlayers(
     if (!response.ok) {
       const errorText = await response.text().catch(() => "");
       console.error(`NBA Stats API error: ${response.status} ${response.statusText}`, errorText.substring(0, 500));
-      return { data: [] };
+      // Surface proxy/NBA errors so client can show a helpful message
+      const msg = response.status === 403
+        ? "NBA API blocked this request (proxy or origin may be blocked). Try Render or another host for the proxy."
+        : response.status === 502
+          ? "Proxy could not reach NBA API. Check proxy logs."
+          : `Search failed: ${response.status}`;
+      return { data: [], error: msg };
     }
 
     const rawData = await response.json();

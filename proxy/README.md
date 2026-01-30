@@ -11,4 +11,6 @@ NBA.com blocks requests from cloud IPs (e.g. Vercel). This proxy runs elsewhere 
    - **Value:** Your proxy URL, e.g. `https://your-app.up.railway.app` (no trailing slash)
 4. Redeploy the Next.js app on Vercel.
 
+**If you still get "No players found" or a 403:** NBA sometimes blocks Railway and other cloud IPs. Try deploying this same proxy to [Render](https://render.com) (free tier) and set `NBA_STATS_PROXY_URL` to the Render URL. Check your proxy logs to see the status code NBA returns.
+
 Without `NBA_STATS_PROXY_URL`, the app uses the NBA Stats API directly (works on localhost; often blocked on Vercel).
